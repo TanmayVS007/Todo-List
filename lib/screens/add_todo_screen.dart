@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class AddTodoScreen extends StatefulWidget {
-  const AddTodoScreen({super.key});
+  final Map? todo;
+  const AddTodoScreen({super.key, this.todo});
   static const routeName = '/add_todo_screeen';
 
   @override
@@ -14,6 +15,21 @@ class AddTodoScreen extends StatefulWidget {
 class _AddTodoScreenState extends State<AddTodoScreen> {
   TextEditingController titleController = TextEditingController();
   TextEditingController descController = TextEditingController();
+
+  bool isEdit = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final todo = widget.todo;
+    if (todo != null) {
+      isEdit = true;
+      final title = todo['title'];
+      final description = todo['description'];
+      titleController.text = title;
+      descController.text = description;
+    }
+  }
 
   @override
   void dispose() {
@@ -26,7 +42,7 @@ class _AddTodoScreenState extends State<AddTodoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Add Task"),
+          title: Text(isEdit ? "Edit Todo" : "Add Todo"),
           centerTitle: true,
         ),
         body: Padding(
@@ -55,9 +71,9 @@ class _AddTodoScreenState extends State<AddTodoScreen> {
                 style: ButtonStyle(
                     backgroundColor:
                         MaterialStatePropertyAll(Colors.blue[600])),
-                child: const Text(
-                  "Submit",
-                  style: TextStyle(
+                child: Text(
+                  isEdit ? "Update" : "Submit",
+                  style: const TextStyle(
                       fontSize: 18,
                       color: Colors.white,
                       fontWeight: FontWeight.w500),
@@ -66,6 +82,38 @@ class _AddTodoScreenState extends State<AddTodoScreen> {
             ],
           ),
         ));
+  }
+
+  Future<void> updateData() async {
+    final todo = widget.todo;
+    if (todo == null) {
+      if (kDebugMode) {
+        print("Can not call edit function without data");
+      }
+      return;
+    }
+    final id = todo['_id'];
+
+    final title = titleController.text;
+    final description = descController.text;
+    final task = {
+      "title": title,
+      "description": description,
+      "is_completed": false
+    };
+
+    final url = "https://api.nstack.in/v1/todos/$id";
+    final uri = Uri.parse(url);
+    final response = await http.put(uri,
+        body: jsonEncode(task), headers: {'Content-Type': 'application/json'});
+
+    if (kDebugMode) {
+      if (response.statusCode == 200) {
+        successMessage();
+      } else {
+        failureMessage();
+      }
+    }
   }
 
   Future<void> submitData() async {

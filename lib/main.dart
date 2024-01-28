@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:todo_app/screens/add_todo_screen.dart';
 import 'package:todo_app/screens/home_screen.dart';
 
 void main() {
@@ -16,11 +15,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.dark,
       theme: ThemeData.dark(),
-      routes: {
-        HomeScreen.routeName: (context) => const HomeScreen(),
-        AddTodoScreen.routeName: (context) => const AddTodoScreen(),
-      },
-      initialRoute: HomeScreen.routeName,
     );
   }
 }

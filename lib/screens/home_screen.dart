@@ -46,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onSelected: (value) {
                       if (value == 'edit') {
                         // open and edit page
+                        navigateToEditScreeen(item);
                       } else if (value == 'delete') {
                         // delete and remove the item
                         deleteById(id);
@@ -68,10 +69,28 @@ class _HomeScreenState extends State<HomeScreen> {
         child: const Center(child: CircularProgressIndicator()),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, AddTodoScreen.routeName),
+        onPressed: () => navigateToAddScreeen(),
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<void> navigateToAddScreeen() async {
+    final route = MaterialPageRoute(builder: (context) => const AddTodoScreen());
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    fetchTodo();
+  }
+
+  Future<void> navigateToEditScreeen(Map item) async {
+    final route = MaterialPageRoute(builder: (context) => AddTodoScreen(todo: item));
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    fetchTodo();
   }
 
   Future<void> deleteById(String id) async {
@@ -98,16 +117,10 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         items = result;
       });
-      successMessage();
     }
     setState(() {
       isLoading = false;
     });
-  }
-
-  void successMessage() {
-    const snackBar = SnackBar(content: Text("Deleted Successfully"));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void failureMessage() {
