@@ -37,20 +37,55 @@ class _HomeScreenState extends State<HomeScreen> {
               itemCount: items.length,
               itemBuilder: (context, index) {
                 final item = items[index] as Map;
+                final id = item['_id'] as String;
                 return ListTile(
                   leading: CircleAvatar(child: Text("${index + 1}")),
                   title: Text(item['title']),
                   subtitle: Text(item['description']),
+                  trailing: PopupMenuButton(
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        // open and edit page
+                      } else if (value == 'delete') {
+                        // delete and remove the item
+                        deleteById(id);
+                      }
+                    },
+                    itemBuilder: (context) {
+                      return [
+                        const PopupMenuItem(
+                          value: "edit",
+                          child: Text("Edit"),
+                        ),
+                        const PopupMenuItem(
+                            value: "delete", child: Text("Delete")),
+                      ];
+                    },
+                  ),
                 );
               }),
         ),
-        child: Center(child: CircularProgressIndicator()),
+        child: const Center(child: CircularProgressIndicator()),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pushNamed(context, AddTodoScreen.routeName),
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<void> deleteById(String id) async {
+    final url = "https://api.nstack.in/v1/todos/$id";
+    final uri = Uri.parse(url);
+    final response = await http.delete(uri);
+    if (response.statusCode == 200) {
+      final filtered = items.where((element) => element['_id'] != id).toList();
+      setState(() {
+        items = filtered;
+      });
+    } else {
+      failureMessage();
+    }
   }
 
   Future<void> fetchTodo() async {
@@ -63,9 +98,20 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         items = result;
       });
+      successMessage();
     }
     setState(() {
       isLoading = false;
     });
+  }
+
+  void successMessage() {
+    const snackBar = SnackBar(content: Text("Deleted Successfully"));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void failureMessage() {
+    const snackBar = SnackBar(content: Text("Deletion Failed"));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 }
